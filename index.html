@@ -3,140 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>轻量化数据可视化看板</title>
+    <title>协同数据看板 - Vue3 架构版</title>
     <link rel="icon" href="data:;base64,=">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
+    
+    
     <style>
-        input[type="file"] { display: none; }
-        .drag-over { border-color: #3b82f6 !important; background-color: #eff6ff !important; }
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        .row-unselected { opacity: 0.4; background-color: #f9fafb; }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .row-unselected {
+            opacity: 0.4;
+            background-color: #f9fafb;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen p-6 pb-24 relative">
-
-    <div class="max-w-7xl mx-auto space-y-6">
-        <header class="flex justify-between items-end border-b pb-4">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900">数据快速可视化看板 <span class="text-xs font-normal text-white bg-blue-600 px-2 py-0.5 rounded ml-2">V2.0.0 模块化工程</span></h1>
-                <p class="text-sm text-gray-500 mt-1">支持多图表切换与特征衍生计算</p>
-            </div>
-            <div class="text-sm font-medium text-blue-600 italic">
-                "More collaboration, better focus."
-            </div>
-        </header>
-
-        <div id="hero-upload-zone" class="border-2 border-dashed border-gray-300 rounded-lg p-16 text-center bg-white transition-colors cursor-pointer hover:bg-gray-50 mt-12 shadow-sm">
-            <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            <p class="mt-4 text-base text-gray-600 font-medium">点击或将 Excel 文件 (.xlsx, .xls, .csv) 拖拽至此处</p>
-            <p class="mt-2 text-sm text-gray-400">本地计算引擎处理，数据绝对安全</p>
-        </div>
-
-        <div id="results-area" class="hidden flex-col space-y-6">
-            
-            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 order-1">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-semibold text-gray-800">可视化视图</h2>
-                    <div class="flex items-center space-x-4">
-                        <span class="text-xs text-gray-500">图表形态切换：</span>
-                        <select id="chart-type-select" class="block w-40 pl-3 pr-8 py-1.5 text-sm border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md border bg-gray-50 font-medium text-blue-700 cursor-pointer">
-                            <option value="stackedBar">堆积柱状图 (默认)</option>
-                            <option value="groupedBar">簇状柱型图</option>
-                            <option value="line">折线统计图</option>
-                        </select>
-
-                        <label id="smooth-toggle-container" class="hidden items-center cursor-pointer ml-2">
-                            <input type="checkbox" id="smooth-checkbox" class="form-checkbox h-4 w-4 text-blue-600 border-gray-300 rounded">
-                            <span class="ml-2 text-sm text-gray-600">平滑曲线</span>
-                        </label>
-
-                    </div>
-                </div>
-                <div id="chart-container" class="w-full h-[500px]"></div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 order-2">
-                
-                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 lg:col-span-1 flex flex-col">
-                    <h2 class="text-sm font-semibold mb-4 text-gray-700 uppercase tracking-wider flex items-center">
-                        <svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                        数据衍生 (特征计算)
-                    </h2>
-                    <div class="space-y-3 flex-grow">
-                        <div>
-                            <select id="calc-col-a" class="block w-full pl-3 pr-10 py-1.5 text-sm border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md border bg-gray-50 text-gray-600"><option value="">[选择变量 A]</option></select>
-                        </div>
-                        <div>
-                            <select id="calc-operator" class="block w-full pl-3 pr-10 py-1.5 text-sm font-bold border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md border bg-gray-100 text-blue-600">
-                                <option value="/">÷ (除以)</option>
-                                <option value="*">× (乘以)</option>
-                                <option value="+">+ (加上)</option>
-                                <option value="-">- (减去)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <select id="calc-col-b" class="block w-full pl-3 pr-10 py-1.5 text-sm border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md border bg-gray-50 text-gray-600"><option value="">[选择变量 B]</option></select>
-                        </div>
-                        <div class="pt-2 border-t border-gray-100 mt-2">
-                            <input type="text" id="calc-new-name" placeholder="输入新指标名称 (如: 楼面价)" class="block w-full pl-3 pr-3 py-1.5 text-sm border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md border bg-white text-gray-800">
-                        </div>
-                    </div>
-                    <button id="add-derived-btn" class="mt-4 w-full bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 text-sm font-medium py-2 rounded transition-colors">
-                        + 生成新指标
-                    </button>
-                </div>
-
-                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 lg:col-span-2 flex flex-col">
-                    <h2 class="text-sm font-semibold mb-4 text-gray-700 uppercase tracking-wider flex items-center">
-                        <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-                        图表维度与指标映射
-                    </h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-600 mb-2">分类维度 (X轴 / Group By)</label>
-                            <select id="x-axis-select" class="block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md border bg-gray-50"></select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-600 mb-2">计算指标 (Y轴)</label>
-                            <div id="y-axis-checkboxes" class="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-1">
-                                </div>
-                        </div>
-                    </div>
-                    <div class="mt-5 flex justify-end">
-                        <button id="generate-btn" class="bg-gray-800 hover:bg-gray-900 text-white text-sm font-medium py-2 px-6 rounded shadow transition-colors">
-                            更新数据透视
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 overflow-hidden flex flex-col order-3">
-                <h2 class="text-lg font-semibold mb-4 text-gray-800 flex items-center justify-between">
-                    底层数据表单
-                    <span id="table-record-count" class="text-xs font-normal text-gray-500"></span>
-                </h2>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead class="bg-gray-50" id="table-head"></thead>
-                        <tbody class="divide-y divide-gray-200 bg-white" id="table-body"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <input type="file" id="file-input" accept=".xlsx, .xls, .csv">
-    <div id="floating-upload-btn" title="上传新文件" class="hidden fixed bottom-8 right-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-xl cursor-pointer transition-transform transform hover:scale-105 z-50">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-    </div>
-
+    <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
 </body>
 </html>

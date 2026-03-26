@@ -1,7 +1,12 @@
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
+import tailwindcss from '@tailwindcss/vite'; // 新增这行
+import { viteSingleFile } from 'vite-plugin-singlefile';
 
-// https://vite.dev/config/
 export default defineConfig({
-  plugins: [vue()],
-})
+    plugins: [
+        vue(),
+        tailwindcss(), // 新增这行
+        viteSingleFile()
+    ],
+});

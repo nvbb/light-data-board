@@ -1,0 +1,16 @@
+# 告诉 IDE 这是最顶层的配置文件，不要往上级目录寻找
+root = true
+
+# 匹配所有文件
+[*]
+# 强制使用纯 UTF-8 编码 (无 BOM) —— 彻底解决 Vite 报错
+charset = utf-8
+
+# 强制使用 LF 换行符 (解决您之前 Git add 时的 Warning)
+end_of_line = lf
+
+# 确保文件末尾包含一个空行 (Unix 标准)
+insert_final_newline = true
+
+# 自动删除行尾多余的空格
+trim_trailing_whitespace = true
