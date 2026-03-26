@@ -1,4 +1,4 @@
-# 协同数据看板 (Light Data Board) - V3.0
+# 轻量化离线数据可视化看板 (Light Data Board) - V3.0
 
 > More collaboration, better focus.
 
