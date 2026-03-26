@@ -3,63 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>协同数据看板 - 极简堆积图</title>
-    <!-- 引入 Tailwind CSS 用于快速排版 -->
+    <title>轻量化数据可视化看板</title>
+    <link rel="icon" href="data:;base64,=">
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入 SheetJS 用于在浏览器读取 Excel 文件 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- 引入 ECharts 用于渲染可视化图表 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.5.0/echarts.min.js"></script>
     <style>
         input[type="file"] { display: none; }
         .drag-over { border-color: #3b82f6 !important; background-color: #eff6ff !important; }
-        /* 隐藏滚动条让视觉更干净 */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        /* 未选中行的视觉反馈 */
         .row-unselected { opacity: 0.4; background-color: #f9fafb; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen p-6 pb-24 relative">
 
     <div class="max-w-7xl mx-auto space-y-6">
-        <!-- 头部区域 -->
         <header class="flex justify-between items-end border-b pb-4">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">数据快速可视化看板</h1>
-                <p class="text-sm text-gray-500 mt-1">自动生成交互式堆积图与联动表单</p>
+                <h1 class="text-2xl font-bold text-gray-900">数据快速可视化看板 <span class="text-xs font-normal text-white bg-blue-600 px-2 py-0.5 rounded ml-2">V2.0.0 模块化工程</span></h1>
+                <p class="text-sm text-gray-500 mt-1">支持多图表切换与特征衍生计算</p>
             </div>
             <div class="text-sm font-medium text-blue-600 italic">
                 "More collaboration, better focus."
             </div>
         </header>
 
-        <!-- 初始大尺寸上传区域 -->
         <div id="hero-upload-zone" class="border-2 border-dashed border-gray-300 rounded-lg p-16 text-center bg-white transition-colors cursor-pointer hover:bg-gray-50 mt-12 shadow-sm">
             <svg class="mx-auto h-16 w-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
             <p class="mt-4 text-base text-gray-600 font-medium">点击或将 Excel 文件 (.xlsx, .xls, .csv) 拖拽至此处</p>
-            <p class="mt-2 text-sm text-gray-400">在本地进行解析与透视，保障数据隐私安全</p>
+            <p class="mt-2 text-sm text-gray-400">本地计算引擎处理，数据绝对安全</p>
         </div>
 
-        <!-- 结果展示区域 -->
         <div id="results-area" class="hidden flex-col space-y-6">
             
-            <!-- 1. 可视化图表 -->
             <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 order-1">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-semibold text-gray-800">可视化图表</h2>
-                    <span class="text-xs font-normal text-gray-500 bg-gray-100 px-3 py-1 rounded-full">💡 勾选下方表格条目可实时更新图表；点击上方图例可筛选显示指标</span>
+                    <h2 class="text-lg font-semibold text-gray-800">可视化视图</h2>
+                    <div class="flex items-center space-x-4">
+                        <span class="text-xs text-gray-500">图表形态切换：</span>
+                        <select id="chart-type-select" class="block w-40 pl-3 pr-8 py-1.5 text-sm border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md border bg-gray-50 font-medium text-blue-700 cursor-pointer">
+                            <option value="stackedBar">堆积柱状图 (默认)</option>
+                            <option value="groupedBar">簇状柱型图</option>
+                            <option value="line">折线统计图</option>
+                        </select>
+                    </div>
                 </div>
                 <div id="chart-container" class="w-full h-[500px]"></div>
             </div>
 
-            <!-- 2. 数据处理与配置区 -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 order-2">
                 
-                <!-- 2.1 衍生列配置 (Data Transformer) -->
                 <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 lg:col-span-1 flex flex-col">
                     <h2 class="text-sm font-semibold mb-4 text-gray-700 uppercase tracking-wider flex items-center">
                         <svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
@@ -67,9 +64,7 @@
                     </h2>
                     <div class="space-y-3 flex-grow">
                         <div>
-                            <select id="calc-col-a" class="block w-full pl-3 pr-10 py-1.5 text-sm border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md border bg-gray-50 text-gray-600">
-                                <option value="">[选择变量 A]</option>
-                            </select>
+                            <select id="calc-col-a" class="block w-full pl-3 pr-10 py-1.5 text-sm border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md border bg-gray-50 text-gray-600"><option value="">[选择变量 A]</option></select>
                         </div>
                         <div>
                             <select id="calc-operator" class="block w-full pl-3 pr-10 py-1.5 text-sm font-bold border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md border bg-gray-100 text-blue-600">
@@ -80,9 +75,7 @@
                             </select>
                         </div>
                         <div>
-                            <select id="calc-col-b" class="block w-full pl-3 pr-10 py-1.5 text-sm border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md border bg-gray-50 text-gray-600">
-                                <option value="">[选择变量 B]</option>
-                            </select>
+                            <select id="calc-col-b" class="block w-full pl-3 pr-10 py-1.5 text-sm border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md border bg-gray-50 text-gray-600"><option value="">[选择变量 B]</option></select>
                         </div>
                         <div class="pt-2 border-t border-gray-100 mt-2">
                             <input type="text" id="calc-new-name" placeholder="输入新指标名称 (如: 楼面价)" class="block w-full pl-3 pr-3 py-1.5 text-sm border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md border bg-white text-gray-800">
@@ -93,10 +86,9 @@
                     </button>
                 </div>
 
-                <!-- 2.2 数据透视配置 -->
-                <div id="config-area" class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 lg:col-span-2 flex flex-col">
+                <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 lg:col-span-2 flex flex-col">
                     <h2 class="text-sm font-semibold mb-4 text-gray-700 uppercase tracking-wider flex items-center">
-                        <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                        <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                         图表维度与指标映射
                     </h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 flex-grow">
@@ -105,22 +97,20 @@
                             <select id="x-axis-select" class="block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md border bg-gray-50"></select>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-600 mb-2">累计指标 (Y轴 / 堆积项)</label>
-                            <div id="y-axis-checkboxes" class="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
-                                <!-- Checkboxes 动态生成 -->
-                            </div>
+                            <label class="block text-sm font-medium text-gray-600 mb-2">计算指标 (Y轴)</label>
+                            <div id="y-axis-checkboxes" class="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-1">
+                                </div>
                         </div>
                     </div>
                     <div class="mt-5 flex justify-end">
                         <button id="generate-btn" class="bg-gray-800 hover:bg-gray-900 text-white text-sm font-medium py-2 px-6 rounded shadow transition-colors">
-                            更新图表与视图
+                            更新数据透视
                         </button>
                     </div>
                 </div>
 
             </div>
 
-            <!-- 3. 数据表单 -->
             <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 overflow-hidden flex flex-col order-3">
                 <h2 class="text-lg font-semibold mb-4 text-gray-800 flex items-center justify-between">
                     底层数据表单
@@ -128,471 +118,19 @@
                 </h2>
                 <div class="overflow-x-auto">
                     <table class="min-w-full divide-y divide-gray-200 text-sm">
-                        <thead class="bg-gray-50" id="table-head">
-                            <!-- 表头由JS动态生成 -->
-                        </thead>
-                        <tbody class="divide-y divide-gray-200 bg-white" id="table-body">
-                            <!-- 表格内容由JS动态生成 -->
-                        </tbody>
+                        <thead class="bg-gray-50" id="table-head"></thead>
+                        <tbody class="divide-y divide-gray-200 bg-white" id="table-body"></tbody>
                     </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 实际的文件上传 Input -->
     <input type="file" id="file-input" accept=".xlsx, .xls, .csv">
-
-    <!-- 悬浮更换文件按钮 -->
     <div id="floating-upload-btn" title="上传新文件" class="hidden fixed bottom-8 right-8 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-xl cursor-pointer transition-transform transform hover:scale-105 z-50">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
-        </svg>
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
     </div>
 
-    <script>
-        const fileInput = document.getElementById('file-input');
-        const heroUploadZone = document.getElementById('hero-upload-zone');
-        const floatingUploadBtn = document.getElementById('floating-upload-btn');
-        const resultsArea = document.getElementById('results-area');
-        
-        // 透视配置 DOM
-        const configArea = document.getElementById('config-area');
-        const xAxisSelect = document.getElementById('x-axis-select');
-        const yAxisCheckboxes = document.getElementById('y-axis-checkboxes');
-        const generateBtn = document.getElementById('generate-btn');
-        
-        // 衍生列配置 DOM
-        const calcColA = document.getElementById('calc-col-a');
-        const calcColB = document.getElementById('calc-col-b');
-        const calcOperator = document.getElementById('calc-operator');
-        const calcNewName = document.getElementById('calc-new-name');
-        const addDerivedBtn = document.getElementById('add-derived-btn');
-
-        const chartContainer = document.getElementById('chart-container');
-        const tableHead = document.getElementById('table-head');
-        const tableBody = document.getElementById('table-body');
-        const tableRecordCount = document.getElementById('table-record-count');
-
-        let myChart = null;
-        let globalRawData = []; // 原始数据源
-        let numericCols = [];   // 数值列合集 (供衍生计算和Y轴使用)
-        let textCols = [];      // 文本列合集
-        
-        // 状态管理
-        let currentPivotArray = []; 
-        let currentSelectedX = "";
-        let currentSelectedYs = [];
-        let currentActiveYs = []; 
-        let sortCol = null;       
-        let sortDesc = true;      
-
-        // --- 核心交互事件 ---
-        heroUploadZone.addEventListener('click', () => fileInput.click());
-        floatingUploadBtn.addEventListener('click', () => fileInput.click());
-
-        [heroUploadZone, document.body].forEach(el => {
-            el.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                if(el === heroUploadZone) el.classList.add('drag-over');
-            });
-            el.addEventListener('dragleave', (e) => {
-                if(el === heroUploadZone) el.classList.remove('drag-over');
-            });
-            el.addEventListener('drop', (e) => {
-                e.preventDefault();
-                if(el === heroUploadZone) el.classList.remove('drag-over');
-                if (e.dataTransfer.files.length > 0) {
-                    handleFile(e.dataTransfer.files[0]);
-                }
-            });
-        });
-
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleFile(e.target.files[0]);
-                e.target.value = ''; 
-            }
-        });
-
-        generateBtn.addEventListener('click', applyPivotAndRender);
-
-        // 新增：衍生列生成逻辑
-        addDerivedBtn.addEventListener('click', () => {
-            const colA = calcColA.value;
-            const operator = calcOperator.value;
-            const colB = calcColB.value;
-            const newName = calcNewName.value.trim();
-
-            if (!colA || !colB || !newName) {
-                return alert("请完整选择变量A、变量B，并为新指标命名。");
-            }
-            if (numericCols.includes(newName) || textCols.includes(newName)) {
-                return alert("该指标名称已存在，请更换。");
-            }
-
-            // 在全局原始数据上执行衍生计算
-            globalRawData.forEach(row => {
-                let valA = Number(row[colA]) || 0;
-                let valB = Number(row[colB]) || 0;
-                let result = 0;
-
-                if (operator === '/' && valB === 0) {
-                    result = 0; // 防御除数为0
-                } else {
-                    switch (operator) {
-                        case '+': result = valA + valB; break;
-                        case '-': result = valA - valB; break;
-                        case '*': result = valA * valB; break;
-                        case '/': result = valA / valB; break;
-                    }
-                }
-                // 解决JS浮点精度问题并保留两位小数
-                row[newName] = Math.round(result * 100) / 100;
-            });
-
-            // 将新列名注册到数值列体系中
-            numericCols.push(newName);
-            
-            // 刷新计算器下拉框
-            populateCalcDropdowns();
-            // 刷新右侧的Y轴选项
-            renderYAxisCheckboxes();
-
-            // 自动勾选刚刚生成的新列，提升体验
-            const newCheckbox = yAxisCheckboxes.querySelector(`input[value="${newName.replace(/"/g, '&quot;')}"]`);
-            if(newCheckbox) newCheckbox.checked = true;
-
-            // 清空输入框
-            calcNewName.value = '';
-            
-            // 自动触发一次更新，让图表显示新数据
-            applyPivotAndRender();
-        });
-
-
-        // 表格复选框委托
-        tableBody.addEventListener('change', (e) => {
-            if (e.target.classList.contains('row-checkbox')) {
-                const uid = parseInt(e.target.getAttribute('data-uid'), 10);
-                const isChecked = e.target.checked;
-                const row = currentPivotArray.find(r => r._uid === uid);
-                if (row) {
-                    row._selected = isChecked;
-                    refreshDataView();
-                }
-            }
-        });
-
-        tableHead.addEventListener('change', (e) => {
-            if (e.target.id === 'select-all-checkbox') {
-                const isChecked = e.target.checked;
-                currentPivotArray.forEach(r => r._selected = isChecked);
-                refreshDataView();
-            }
-        });
-
-        // --- 1. 读取文件 ---
-        function handleFile(file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, {type: 'array'});
-                const firstSheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[firstSheetName];
-                
-                // 为了兼容由于换行符等导致的非标准表头，先进行基础清洗
-                const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-                
-                if (jsonData.length === 0) return alert("表格为空，请检查文件。");
-
-                // 清洗表头中的回车符/换行符，防止后续JS模板字符串解析报错
-                const cleanedData = jsonData.map(row => {
-                    let newRow = {};
-                    for (let key in row) {
-                        let cleanKey = key.replace(/[\r\n]+/g, ''); // 移除回车换行
-                        newRow[cleanKey] = row[key];
-                    }
-                    return newRow;
-                });
-
-                heroUploadZone.classList.add('hidden');
-                floatingUploadBtn.classList.remove('hidden');
-                resultsArea.classList.remove('hidden');
-                resultsArea.classList.add('flex');
-
-                globalRawData = cleanedData;
-                analyzeDataStructure(cleanedData);
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        // --- 2. 解析逻辑 ---
-        function analyzeDataStructure(data) {
-            if (data.length === 0) return;
-            const columns = Object.keys(data[0]);
-            numericCols = [];
-            textCols = [];
-
-            columns.forEach(col => {
-                let isNumeric = true;
-                let hasData = false;
-                for(let i = 0; i < Math.min(data.length, 10); i++) {
-                    const val = data[i][col];
-                    if (val !== undefined && val !== "") {
-                        hasData = true;
-                        // 包含非数字字符的列直接归为文本 (除了小数点和负号)
-                        if (isNaN(Number(val))) {
-                            isNumeric = false;
-                            break;
-                        }
-                    }
-                }
-                // 空列或含有文本的归为维度，纯数字的归为指标
-                if (isNumeric && hasData) numericCols.push(col);
-                else textCols.push(col);
-            });
-            
-            populateCalcDropdowns();
-            renderConfigPanel();
-        }
-
-        // --- 3. 配置面板渲染 ---
-        function populateCalcDropdowns() {
-            // 填充计算器的下拉选项 (只能选数值列进行计算)
-            const optionsHtml = `<option value="">[选择数值变量]</option>` + 
-                numericCols.map(col => `<option value="${col.replace(/"/g, '&quot;')}">${col}</option>`).join('');
-            
-            // 保持当前选中的值不变(如果有的话)
-            const valA = calcColA.value;
-            const valB = calcColB.value;
-            
-            calcColA.innerHTML = optionsHtml;
-            calcColB.innerHTML = optionsHtml;
-            
-            if(valA && numericCols.includes(valA)) calcColA.value = valA;
-            if(valB && numericCols.includes(valB)) calcColB.value = valB;
-        }
-
-        function renderYAxisCheckboxes() {
-            yAxisCheckboxes.innerHTML = '';
-            numericCols.forEach(col => {
-                const label = document.createElement('label');
-                label.className = 'inline-flex items-center cursor-pointer bg-gray-50 border border-gray-200 px-3 py-1 text-xs rounded text-gray-700 hover:bg-gray-100 transition-colors whitespace-nowrap';
-                
-                // 行业预选逻辑：带有特定字眼的默认勾选
-                const isChecked = (col.includes("产值") || col.includes("结算") || col.includes("金额") || col.includes("价")) ? 'checked' : '';
-                const safeColValue = col.replace(/"/g, '&quot;');
-                
-                label.innerHTML = `
-                    <input type="checkbox" value="${safeColValue}" class="form-checkbox h-3.5 w-3.5 text-blue-600 border-gray-300 rounded focus:ring-blue-500" ${isChecked}>
-                    <span class="ml-1.5">${col}</span>
-                `;
-                yAxisCheckboxes.appendChild(label);
-            });
-        }
-
-        function renderConfigPanel() {
-            // X轴配置
-            xAxisSelect.innerHTML = '';
-            const xOptions = textCols.length > 0 ? textCols : Object.keys(globalRawData[0]);
-            xOptions.forEach(col => {
-                const option = document.createElement('option');
-                option.value = col;
-                option.textContent = col;
-                // 行业预选：项目名、地块名、编号
-                if (col.includes("编号") || col.includes("名称") || col.includes("地块") || col === "名称") {
-                    option.selected = true;
-                }
-                xAxisSelect.appendChild(option);
-            });
-
-            renderYAxisCheckboxes();
-
-            // 如果预选落空，保底勾选第一个
-            if(!yAxisCheckboxes.querySelector('input:checked') && numericCols.length > 0) {
-                yAxisCheckboxes.querySelector('input').checked = true;
-            }
-
-            applyPivotAndRender();
-        }
-
-        // --- 4. 数据透视与渲染 ---
-        function applyPivotAndRender() {
-            currentSelectedX = xAxisSelect.value;
-            currentSelectedYs = Array.from(yAxisCheckboxes.querySelectorAll('input:checked')).map(cb => cb.value);
-
-            if (!currentSelectedX || currentSelectedYs.length === 0) {
-                return alert("请至少选择一个分类维度和一个累计指标。");
-            }
-
-            const pivotDataMap = {};
-            globalRawData.forEach(row => {
-                const xVal = row[currentSelectedX] || '未分类';
-                if (!pivotDataMap[xVal]) {
-                    pivotDataMap[xVal] = {};
-                    currentSelectedYs.forEach(y => pivotDataMap[xVal][y] = 0);
-                }
-                currentSelectedYs.forEach(y => {
-                    const val = Number(row[y]); 
-                    if (!isNaN(val)) pivotDataMap[xVal][y] += val;
-                });
-            });
-
-            let uidCounter = 0;
-            currentPivotArray = Object.keys(pivotDataMap).map(xVal => {
-                const rowData = { 
-                    _uid: uidCounter++, 
-                    _selected: true, 
-                    [currentSelectedX]: xVal 
-                };
-                currentSelectedYs.forEach(y => {
-                    // 保留小数点后两位
-                    rowData[y] = Math.round(pivotDataMap[xVal][y] * 100) / 100;
-                });
-                return rowData;
-            });
-
-            sortCol = null;
-            sortDesc = true;
-            currentActiveYs = [...currentSelectedYs];
-
-            initChart(currentSelectedYs);
-            refreshDataView(); 
-        }
-
-        // --- 5. 图表与表格渲染逻辑 ---
-        function initChart(legendData) {
-            if (myChart != null) myChart.dispose();
-            myChart = echarts.init(chartContainer);
-
-            const option = {
-                tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
-                legend: { data: legendData, top: '0%', type: 'scroll' },
-                grid: { left: '1%', right: '3%', bottom: '3%', top: '12%', containLabel: true },
-                xAxis: { type: 'category', data: [], axisLabel: { interval: 0, rotate: 15 } },
-                yAxis: { type: 'value' },
-                series: legendData.map(yKey => ({ name: yKey, type: 'bar', stack: 'total', data: [] })),
-                color: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316', '#6366f1']
-            };
-            myChart.setOption(option);
-            window.addEventListener('resize', () => myChart.resize());
-
-            myChart.on('legendselectchanged', function (params) {
-                currentActiveYs = currentSelectedYs.filter(y => params.selected[y] !== false);
-                renderTable(); 
-            });
-        }
-
-        function refreshDataView() {
-            currentPivotArray.sort((a, b) => {
-                if (a._selected && !b._selected) return -1;
-                if (!a._selected && b._selected) return 1;
-
-                if (sortCol) {
-                    let valA = a[sortCol];
-                    let valB = b[sortCol];
-                    if (typeof valA === 'number' && typeof valB === 'number') {
-                        return sortDesc ? valB - valA : valA - valB;
-                    } else {
-                        const strA = String(valA || '');
-                        const strB = String(valB || '');
-                        return sortDesc ? strB.localeCompare(strA) : strA.localeCompare(strB);
-                    }
-                }
-                return 0;
-            });
-
-            const selectedRows = currentPivotArray.filter(r => r._selected);
-            const xAxisData = selectedRows.map(row => row[currentSelectedX]);
-            const seriesData = currentSelectedYs.map(yKey => {
-                return {
-                    name: yKey,
-                    data: selectedRows.map(row => row[yKey])
-                };
-            });
-
-            myChart.setOption({
-                xAxis: { data: xAxisData },
-                series: seriesData
-            });
-
-            renderTable();
-        }
-
-        function handleSort(col) {
-            if (sortCol === col) {
-                sortDesc = !sortDesc;
-            } else {
-                sortCol = col;
-                sortDesc = true; 
-            }
-            refreshDataView();
-        }
-
-        function renderTable() {
-            const visibleColumns = [currentSelectedX, ...currentActiveYs];
-            const isAllSelected = currentPivotArray.length > 0 && currentPivotArray.every(r => r._selected);
-
-            let headHTML = `<tr>
-                <th scope="col" class="px-6 py-3 w-12 text-center bg-gray-50 sticky top-0 z-10">
-                    <input type="checkbox" id="select-all-checkbox" class="form-checkbox h-4 w-4 text-blue-600 rounded cursor-pointer" ${isAllSelected ? 'checked' : ''}>
-                </th>`;
-            
-            visibleColumns.forEach((col, index) => {
-                const alignClass = index === 0 ? 'text-left' : 'text-right';
-                const justifyClass = index === 0 ? 'justify-start' : 'justify-end';
-                
-                let sortIcon = '<svg class="w-4 h-4 ml-1 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" /></svg>';
-                if (sortCol === col) {
-                    if (sortDesc) {
-                        sortIcon = '<svg class="w-4 h-4 ml-1 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" /></svg>'; 
-                    } else {
-                        sortIcon = '<svg class="w-4 h-4 ml-1 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18" /></svg>'; 
-                    }
-                }
-
-                const safeColName = col.replace(/"/g, '&quot;');
-                headHTML += `<th scope="col" data-sort-col="${safeColName}" class="sortable-th px-6 py-3 ${alignClass} text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-50 hover:bg-gray-200 cursor-pointer select-none sticky top-0 z-10 transition-colors" title="点击排序">
-                    <div class="flex items-center ${justifyClass} pointer-events-none">
-                        ${col} ${sortIcon}
-                    </div>
-                </th>`;
-            });
-            headHTML += '</tr>';
-            tableHead.innerHTML = headHTML;
-
-            document.querySelectorAll('.sortable-th').forEach(th => {
-                th.addEventListener('click', (e) => {
-                    const colName = e.currentTarget.getAttribute('data-sort-col');
-                    handleSort(colName);
-                });
-            });
-
-            let bodyHTML = '';
-            let selectedCount = 0;
-
-            currentPivotArray.forEach(row => {
-                if(row._selected) selectedCount++;
-                const rowClass = row._selected ? 'hover:bg-blue-50' : 'row-unselected';
-                
-                bodyHTML += `<tr class="${rowClass} transition-colors border-b border-gray-100 last:border-0">
-                    <td class="px-6 py-3 whitespace-nowrap text-center">
-                        <input type="checkbox" data-uid="${row._uid}" class="row-checkbox form-checkbox h-4 w-4 text-blue-600 rounded cursor-pointer" ${row._selected ? 'checked' : ''}>
-                    </td>`;
-                    
-                visibleColumns.forEach((col, index) => {
-                    const alignClass = index === 0 ? 'text-left font-medium' : 'text-right';
-                    const value = (row[col] !== undefined && row[col] !== "") ? row[col] : '-';
-                    const displayValue = (index !== 0 && !isNaN(value)) ? Number(value).toLocaleString() : value;
-                    bodyHTML += `<td class="px-6 py-3 whitespace-nowrap ${alignClass} text-gray-700">${displayValue}</td>`;
-                });
-                bodyHTML += '</tr>';
-            });
-            tableBody.innerHTML = bodyHTML;
-            
-            tableRecordCount.textContent = `共 ${currentPivotArray.length} 条项目，图表显示其中 ${selectedCount} 条`;
-        }
-    </script>
+    <script type="module" src="/src/main.js"></script>
 </body>
 </html>
