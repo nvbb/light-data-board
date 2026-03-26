@@ -37,6 +37,25 @@ export const UIManager = {
                 this.refreshView();
             }
         });
+        document.getElementById('chart-type-select').addEventListener('change', (e) => {
+            Store.config.chartType = e.target.value;
+            // 控制平滑选项的显示与隐藏
+            const smoothContainer = document.getElementById('smooth-toggle-container');
+            if (Store.config.chartType === 'line') {
+                smoothContainer.classList.remove('hidden');
+                smoothContainer.classList.add('inline-flex');
+            } else {
+                smoothContainer.classList.add('hidden');
+                smoothContainer.classList.remove('inline-flex');
+            }
+            this.refreshView();
+        });
+
+        // 监听平滑复选框变化
+        document.getElementById('smooth-checkbox').addEventListener('change', (e) => {
+            Store.config.isSmooth = e.target.checked;
+            this.refreshView();
+        });
     },
 
     handleFileUpload(e) {

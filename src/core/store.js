@@ -1,16 +1,18 @@
+// src/core/store.js
 export const Store = {
     rawData: [],
     numericCols: [],
     textCols: [],
-    pivotData: [], // 透视后的数组
+    pivotData: [], 
     
-    // 当前用户配置
     config: {
         selectedX: "",
         selectedYs: [],
-        activeYs: [], // 图表中实际显示的Y轴(联动用)
+        activeYs: [], 
         sortCol: null,
         sortDesc: true,
-        chartType: "stackedBar" // stackedBar | groupedBar | line
+        chartType: "stackedBar",
+        isSmooth: false,        // 新增：折线图默认不平滑
+        colorTheme: "morandi"   // 新增：TODO计划的基础，默认莫兰迪
     }
 };
