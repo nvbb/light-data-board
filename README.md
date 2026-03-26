@@ -34,7 +34,7 @@
 
 ```
 # 1. 克隆项目
-git clone [https://github.com/nvbb/light-data-board.git](https://github.com/您的用户名/light-data-board.git)
+git clone [https://github.com/nvbb/light-data-board.git]
 
 # 2. 进入目录并安装依赖
 cd light-data-board
